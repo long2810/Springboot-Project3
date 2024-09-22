@@ -1,0 +1,19 @@
+spring:
+  mvc:
+    static-path-pattern: /static/**
+    web:
+      resources:
+        static-locations: classpath:/static,Project3:media/
+  datasource:
+    url: jdbc:sqlite:db.sqlite
+    driver-class-name: org.sqlite.JDBC
+    username: sa
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    show-sql: true
+
+jwt:
+  secret: v^K#V@igLXJrBvgY^%gKGy4-GsY51jrun:?C38FY?8h%]t_rd]E@nhL?de3tR>?
