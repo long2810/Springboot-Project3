@@ -1,0 +1,565 @@
+{
+	"info": {
+		"_postman_id": "e4da3c06-0fab-4412-898d-fcd53e06d000",
+		"name": "Project3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "37773665"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "/users/register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/users/register?username=user1&password=password&passwordCheck=password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"users",
+								"register"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "user1"
+								},
+								{
+									"key": "password",
+									"value": "password"
+								},
+								{
+									"key": "passwordCheck",
+									"value": "password"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/users/login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/users/login?username=brad&password=password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"users",
+								"login"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "brad"
+								},
+								{
+									"key": "password",
+									"value": "password"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "users/updateInfo",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nickname\": \"alexhs\",\r\n    \"age\": 24,\r\n    \"email\":\"alex@gmail.com\",\r\n    \"phone\":\"010-3087-8112\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/users/updateInfo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"users",
+								"updateInfo"
+							],
+							"query": [
+								{
+									"key": "nickname",
+									"value": "user1hi",
+									"disabled": true
+								},
+								{
+									"key": "age",
+									"value": "24",
+									"disabled": true
+								},
+								{
+									"key": "email",
+									"value": "alex@gmail.com",
+									"disabled": true
+								},
+								{
+									"key": "phone ",
+									"value": "01030878112",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "users/updateInfo",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/users/updateInfo?nickname=user1hi&age=24&email=alex@gmail.com&phone=010-3087-8112",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"users",
+								"updateInfo"
+							],
+							"query": [
+								{
+									"key": "nickname",
+									"value": "user1hi"
+								},
+								{
+									"key": "age",
+									"value": "24"
+								},
+								{
+									"key": "email",
+									"value": "alex@gmail.com"
+								},
+								{
+									"key": "phone",
+									"value": "010-3087-8112"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/users/1/business",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/users/businessRegister?businessNum=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"users",
+								"businessRegister"
+							],
+							"query": [
+								{
+									"key": "businessNum",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/users/admin/business",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "http://localhost:8080/users/admin/business"
+					},
+					"response": []
+				},
+				{
+					"name": "/users/admin/business/1",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "http://localhost:8080/users/admin/business/1"
+					},
+					"response": []
+				},
+				{
+					"name": "users/admin/business/{regisId}/accept",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "http://localhost:8080/users/admin/business/1/accept"
+					},
+					"response": []
+				},
+				{
+					"name": "users/admin/business/{regisId}/decline",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8080/users/admin/business/1/decline"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shop",
+			"item": [
+				{
+					"name": "shop",
+					"item": [
+						{
+							"name": "/shops/register",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/shops/register?shopName=shop7&description=This is shop7&category=BEAUTY",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"register"
+									],
+									"query": [
+										{
+											"key": "shopName",
+											"value": "shop7"
+										},
+										{
+											"key": "description",
+											"value": "This is shop7"
+										},
+										{
+											"key": "category",
+											"value": "BEAUTY"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/shops/shopWaitingList",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/shops/shopWaitingList",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"shopWaitingList"
+									],
+									"query": [
+										{
+											"key": "shopName",
+											"value": "shop2",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "This is shop2",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "SPORT",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "shops/{shopId}/accept",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/shops/2/accept",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"2",
+										"accept"
+									],
+									"query": [
+										{
+											"key": "shopName",
+											"value": "shop2",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "This is shop2",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "SPORT",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "/shops/shopList",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/shops/shopList",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"shopList"
+									],
+									"query": [
+										{
+											"key": "shopName",
+											"value": "shop2",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "This is shop2",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "SPORT",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "shops/{shopId}/decline",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"declineReason\" : \"It just be declined\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/shops/2/decline",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"2",
+										"decline"
+									],
+									"query": [
+										{
+											"key": "shopName",
+											"value": "shop2",
+											"disabled": true
+										},
+										{
+											"key": "description",
+											"value": "This is shop2",
+											"disabled": true
+										},
+										{
+											"key": "category",
+											"value": "SPORT",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "shops/{shopId}/close",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"closeDemand\":\"I want to close\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:8080/shops/1/close",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"1",
+										"close"
+									],
+									"query": [
+										{
+											"key": "closeDemand",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "shops/{shopId}/read",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://localhost:8080/shops/1/read"
+							},
+							"response": []
+						},
+						{
+							"name": "shops/{shopId}/searchName",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/shops/searchName?shopName=shop",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"searchName"
+									],
+									"query": [
+										{
+											"key": "shopName",
+											"value": "shop"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "shops/{shopId}/searchCategory",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/shops/searchByCategory?category=BEAUTY",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"searchByCategory"
+									],
+									"query": [
+										{
+											"key": "category",
+											"value": "BEAUTY"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "shops/{shopId}/searchByDate",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:8080/shops/searchByDate",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "8080",
+									"path": [
+										"shops",
+										"searchByDate"
+									],
+									"query": [
+										{
+											"key": "shopName",
+											"value": "shop",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Product",
+					"item": []
+				}
+			]
+		}
+	]
+}

@@ -20,21 +20,37 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
     private final JwtTokenUtils jwtTokenUtils;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/users/register","/users/home","/token/issue","/multipart").permitAll();
+                    auth.requestMatchers("/users/register", "/users/home", "/token/issue").permitAll();
                     auth.requestMatchers("/users/updateInfo").authenticated();
                     auth.requestMatchers("/users/{userId}/updateProfileImage").authenticated();
                     auth.requestMatchers("/users/{userId}/updateProfile").authenticated();
-                    auth.requestMatchers("/users/{userId}/business").authenticated();
-                    auth.requestMatchers("/users/admin/business","/user/admin/business/{id}").authenticated();
-                    auth.requestMatchers("/users//admin/business/{regisId}/accept").authenticated();
+                    auth.requestMatchers("/users/businessRegister").authenticated();
+                    auth.requestMatchers("/users/admin/business", "/users/admin/business/{id}").authenticated();
+                    auth.requestMatchers("/users/admin/business/{regisId}/accept").authenticated();
                     auth.requestMatchers("/users/{userName}/shops/registerLogin").authenticated();
                     auth.requestMatchers("/users/{userName}/shops/register").authenticated();
+                    auth.requestMatchers(
+                            "/shops/register",
+                            "/shops/shopWaitingList",
+                            "/shops/shopList",
+                            "/shops/{shopId}/accept",
+                            "/shops/{shopId}/decline",
+                            "/shops/{shopId}/close",
+                            "/shops/{shopId}/read"
+                    ).authenticated();
+                    auth.requestMatchers(
+                            "/shops/searchName",
+                            "/shops/searchByCategory",
+                            "/shops/searchByDate"
+                    );
                 })
+
                 .formLogin(formLogin -> formLogin
                         .loginPage("/users/login")
                         .defaultSuccessUrl("/users/updateInfo")
@@ -46,9 +62,9 @@ public class WebSecurityConfig {
                         .logoutSuccessUrl("/users/login")
                 )
                 .addFilterBefore(
-                new JwtTokenFilter(jwtTokenUtils),
-                AuthorizationFilter.class
-        );
+                        new JwtTokenFilter(jwtTokenUtils),
+                        AuthorizationFilter.class
+                );
         ;
         return http.build();
     }
@@ -60,6 +76,7 @@ public class WebSecurityConfig {
                 .build();
         return new InMemoryUserDetailsManager(user1);
     }
+
     //비밀번호의 안호화를 담당하는 객체
     @Bean
     public PasswordEncoder passwordEncoder() {

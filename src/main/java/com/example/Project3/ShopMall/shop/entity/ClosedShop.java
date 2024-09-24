@@ -6,15 +6,9 @@ import lombok.*;
 
 @Getter
 @Setter
-@Entity
 @NoArgsConstructor
 public class ClosedShop {
-    @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long closeShop_id;
-
     private String closeDemand;
-
-    @ManyToOne
-    UserEntity closeUser;
+    private UserEntity closedUser;
 }

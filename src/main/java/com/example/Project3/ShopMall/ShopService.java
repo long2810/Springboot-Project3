@@ -1,17 +1,18 @@
 package com.example.Project3.ShopMall;
 
 import com.example.Project3.AuthenticationFacade;
-import com.example.Project3.ShopMall.shop.dto.ProductDto;
+import com.example.Project3.ShopMall.cart.entity.CartEntity;
+import com.example.Project3.ShopMall.product.entity.ProductEntity;
+import com.example.Project3.ShopMall.shop.dto.ShopDto;
 import com.example.Project3.ShopMall.shop.dto.ShopRegistrationDto;
 import com.example.Project3.ShopMall.shop.entity.*;
-import com.example.Project3.ShopMall.shop.repo.ProductRepository;
+import com.example.Project3.ShopMall.product.repo.ProductRepository;
 import com.example.Project3.ShopMall.shop.repo.ShopAcceptWaitingRepository;
 import com.example.Project3.ShopMall.shop.repo.ShopRepository;
 import com.example.Project3.user.entity.UserEntity;
 import com.example.Project3.user.repo.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -48,6 +49,12 @@ public class ShopService {
         shop1.setCategory(ShopCategory.BEAUTY);
         shopRepository.save(shop1);
         log.info(String.format("shop1: %s",shop1.toString()));
+
+        ShopEntity shop2 = new ShopEntity();
+        shop2.setShopName("shop2");
+        shop2.setDescription("This is Shop2");
+        shop2.setCategory(ShopCategory.BEAUTY);
+        shopRepository.save(shop2);
     }
 
     public void shopRegistration (
@@ -56,12 +63,17 @@ public class ShopService {
         UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
         if (!currentUser.getRole().name().equals("BUSINESS"))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not Business");
+        boolean existShop = shopRepository.existsByShopName(shopRegistrationDto.getShopName());
+        if (existShop) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"shopName is existed");
+        }
         ShopRegistration newShop = new ShopRegistration();
         newShop.setOwner(currentUser);
         newShop.setShopName(shopRegistrationDto.getShopName());
         newShop.setDescription(shopRegistrationDto.getDescription());
         newShop.setCategory(ShopCategory.valueOf(shopRegistrationDto.getCategory()));
         newShop.setState(ShopState.PREPARED);
+        log.info(newShop.getShopName());
         shopAcceptWaitingRepository.save(newShop);
     }
 
@@ -90,6 +102,7 @@ public class ShopService {
 
         // Convert all shopRegistration data to ShopEntity
         ShopEntity newShop = new ShopEntity();
+        newShop.setShopName(acceptShop.getShopName());
         newShop.setDescription(acceptShop.getDescription());
         newShop.setState(ShopState.OPENED);
         newShop.setCategory(acceptShop.getCategory());
@@ -116,12 +129,11 @@ public class ShopService {
         ShopRegistration declineShop = optionalShop.get();
         DeclinedShop shopDeclineEntity = new DeclinedShop();
         shopDeclineEntity.setDeclineReason(declineReason);
-        currentUser.getDeclineShopList().add(shopDeclineEntity);
         shopAcceptWaitingRepository.deleteById(shopId);
         return "decline success";
     }
 
-    public String closeShopById(Long shopId, String closeDemand) {
+    public ClosedShop closeShopById(Long shopId, String closeDemand) {
         UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
         if (!currentUser.getRole().name().equals("ADMIN"))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not ADMIN so can't check the registrationList");
@@ -132,43 +144,71 @@ public class ShopService {
 
         ShopEntity deletedShop = optionalShop.get();
         ClosedShop closedShop = new ClosedShop();
+        closedShop.setCloseShop_id(shopId);
         closedShop.setCloseDemand(closeDemand);
-        currentUser.getClosedShopList().add(closedShop);
+        closedShop.setClosedUser(currentUser);
+
         shopRepository.deleteById(shopId);
-        return "close shop Success";
+        return closedShop;
     }
-    public ShopEntity findShopById(Long id) {
+    public List<ShopDto> shopList() {
+        UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
+        if (!currentUser.getRole().name().equals("ADMIN"))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not ADMIN so can't check the registrationList");
+
+        List<ShopEntity> shopList = shopRepository.findAll();
+        for (ShopEntity entity : shopList) {
+            log.info(entity.getShopName().toString());
+        }
+        return shopList.stream()
+                .map(ShopDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    public ShopDto findShopById(Long id) {
         Optional<ShopEntity> optionalShop = shopRepository.findById(id);
         if(optionalShop.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return optionalShop.get();
+        return ShopDto.fromEntity(optionalShop.get());
     }
     public List<ShopEntity> searchShopList() {
         return shopRepository.findAll();
     }
 
-    public ShopEntity searchShopByName(String shopName) {
+    public List<ShopDto> searchShopByName(String shopName) {
         UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
         if (currentUser.getRole().name().equals("INACTIVE"))
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"user is inactive user so can not search the shop, please register account");
-        Optional<ShopEntity> optionalShop = shopRepository.findByShopName(shopName);
-        if(optionalShop.isEmpty()) {
+        List<ShopEntity> shopList = shopRepository.findAll();
+        if(shopList.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return optionalShop.get();
+        List<ShopEntity> shopListWithSameName = new ArrayList<>();
+        for (ShopEntity entity : shopList) {
+            if (entity.getShopName().contains(shopName))
+                shopListWithSameName.add(entity);
+        }
+        return shopListWithSameName.stream()
+                .map(ShopDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    public List<ShopEntity> searchShopByCategory(String category) {
+    public List<ShopDto> searchShopByCategory(String category) {
         List<ShopEntity> shopList = shopRepository.findAll();
+        if(shopList.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         List<ShopEntity> shopListWithSameCategory = new ArrayList<>();
 
         for (ShopEntity entity : shopList) {
-            if(entity.getCategory().equals(category)) {
+            if(entity.getCategory().name().contains(category)) {
                 shopListWithSameCategory.add(entity);
             }
         }
-        return shopListWithSameCategory;
+        return shopListWithSameCategory.stream()
+                .map(ShopDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     public List<ShopEntity> searchShopByPurchaseDate() {
@@ -179,102 +219,20 @@ public class ShopService {
         return sortedShops;
     }
 
-    public void productRegistration(ProductDto dto, String shopName) {
-        UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
-        if (!currentUser.getRole().name().equals("BUSINESS"))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not BUSINESS so can't register product");
-        // check user is owner of shop or not
-        if (!dto.getProduct_shop().getOwner().equals(currentUser)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not shop owner");
-        }
-        ProductEntity product = new ProductEntity();
-        product.setProduct_name(dto.getProduct_name());
-        product.setDescription(dto.getDescription());
-        product.setPrice(dto.getPrice());
-        product.setStock(dto.getStock());
-        product.setProduct_image(dto.getProduct_image());
-        Optional<ShopEntity> optionalShop = shopRepository.findByShopName(shopName);
-        product.setProduct_shop(optionalShop.get());
-        productRepository.save(product);
-    }
-    public ProductEntity findProductById(Long id) {
-        return productRepository.findById(id).get();
-    }
-    public ProductEntity updateProduct(ProductDto dto) {
-        UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
-
-        if (!dto.getProduct_shop().getOwner().equals(currentUser)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not shop owner");
-        }
-
-        Optional<ProductEntity> optionalProduct = productRepository.findByProductName(dto.getProduct_name());
-        if(optionalProduct.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-        ProductEntity product = optionalProduct.get();
-        product.setProduct_name(dto.getProduct_name());
-        product.setDescription(dto.getDescription());
-        product.setPrice(dto.getPrice());
-        product.setStock(dto.getStock());
-        product.setProduct_image(dto.getProduct_image());
-        log.info(product.getProduct_name());
-        return productRepository.save(product);
-    }
-
-    public void deleteProduct(Long product_id) {
-        UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
-
-        Optional<ProductEntity> optionalProduct = productRepository.findById(product_id);
-        if(optionalProduct.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-
-        ProductEntity product = optionalProduct.get();
-        if (!product.getProduct_shop().getOwner().equals(currentUser)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not shop owner");
-        }
-
-        productRepository.delete(product);
-    }
-
-    public ResponseEntity<List<ProductEntity>> searchProductByName(String product_name) {
-        List<ProductEntity> products = productRepository.findByProductNameContaining(product_name);
-        if (products.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        } else {
-            return ResponseEntity.ok(products);
-        }
-    }
-
-    public ResponseEntity<List<ProductEntity>> searchProductByPrice(Double minPrice, Double maxPrice) {
-        List<ProductEntity> products = productRepository.findByPriceBetween(minPrice, maxPrice);
-        return products.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(products);
-    }
-
-    public Cart addOrderToCart(Order order) {
-        UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
-        if (!currentUser.getRole().name().equals("INACTIVE"))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not USER so can't purchase product");
-        Cart cart = currentUser.getUser_cart();
-        cart.getOrders().add(order);
-        return cart;
-    }
-
-    public double totalOrderPriceInCart() {
-        UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
-        if (!currentUser.getRole().name().equals("INACTIVE"))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not USER so can't purchase product");
-        List<Order> orders = currentUser.getUser_cart().getOrders();
-        if (orders.size() == 0 ) return 0;
-        double totalPrice = 0;
-        for (Order order : orders) {
-            List<ProductEntity> productList = order.getProducts();
-            for (ProductEntity product : productList) {
-                double order_price = product.getPrice() * product.getPurchase_count();
-                totalPrice += order_price;
-            }
-        }
-        return totalPrice;
-    }
+//    public double totalOrderPriceInCart() {
+//        UserEntity currentUser = facade.getCurrentUserEntity(userRepository);
+//        if (!currentUser.getRole().name().equals("INACTIVE"))
+//            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not USER so can't purchase product");
+//        List<Order> orders = currentUser.getUser_cart().getOrders();
+//        if (orders.size() == 0 ) return 0;
+//        double totalPrice = 0;
+//        for (Order order : orders) {
+//            List<ProductEntity> productList = order.getProducts();
+//            for (ProductEntity product : productList) {
+//                double order_price = product.getPrice() * product.getPurchase_count();
+//                totalPrice += order_price;
+//            }
+//        }
+//        return totalPrice;
+//    }
 }

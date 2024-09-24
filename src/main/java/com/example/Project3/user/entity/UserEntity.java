@@ -1,12 +1,14 @@
 package com.example.Project3.user.entity;
 
-import com.example.Project3.ShopMall.shop.entity.Cart;
+import com.example.Project3.ShopMall.cart.entity.CartEntity;
 import com.example.Project3.ShopMall.shop.entity.ClosedShop;
 import com.example.Project3.ShopMall.shop.entity.DeclinedShop;
 import com.example.Project3.ShopMall.shop.entity.ShopEntity;
+import com.example.Project3.user.UserDetails.CustomUserDetails;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -20,10 +22,8 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String username;
 
-    @Column(nullable = false)
     private String password;
 
     private String nickname;
@@ -39,20 +39,21 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
     private List<UserBusinessRegistration> businessList;
 
-    @OneToMany(mappedBy = "owner")
-    private List<ShopEntity> shopList;
+    @OneToMany(mappedBy = "owner",cascade = CascadeType.ALL)
+    private List<ShopEntity> shopList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "declineUser")
-    List<DeclinedShop> declineShopList;
-
-    @OneToMany(mappedBy = "closeUser")
-    List<ClosedShop> closedShopList;
-
-    @OneToOne
-    Cart user_cart;
+//    @OneToMany(mappedBy = "declineUser")
+//    List<DeclinedShop> declineShopList;
+//
+//    @OneToMany(mappedBy = "closeUser")
+//    List<ClosedShop> closedShopList;
+//
+//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL,
+//            fetch = FetchType.LAZY, optional = false)
+//    private CartEntity user_cart;
 
     private double budget;
 

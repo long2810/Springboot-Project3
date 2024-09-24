@@ -1,17 +1,18 @@
 package com.example.Project3.ShopMall.shop.entity;
 
+import com.example.Project3.ShopMall.product.entity.ProductEntity;
 import com.example.Project3.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "shop_table")
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ShopEntity {
@@ -19,6 +20,7 @@ public class ShopEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long shop_id;
 
+//    @Column(unique = true)
     String shopName;
     String description;
 
@@ -34,6 +36,6 @@ public class ShopEntity {
     UserEntity owner;
 
     @OneToMany(mappedBy = "product_shop")
-    List<ProductEntity> products;
+    List<ProductEntity> products = new ArrayList<>();
 
 }

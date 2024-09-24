@@ -1,6 +1,8 @@
 package com.example.Project3.user;
 
 import com.example.Project3.AuthenticationFacade;
+import com.example.Project3.jwt.JwtTokenUtils;
+import com.example.Project3.jwt.dto.JwtResponseDto;
 import com.example.Project3.user.UserDetails.CustomUserDetails;
 import com.example.Project3.user.dto.UserBusinessRegistrationDto;
 import com.example.Project3.user.dto.UserDto;
@@ -28,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,34 +38,70 @@ public class JpaUserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final BusinessRepository businessRepository;
+    private JwtTokenUtils tokenUtils;
     public JpaUserService(
             PasswordEncoder passwordEncoder,
             UserRepository userRepository,
-            BusinessRepository businessRepository
+            BusinessRepository businessRepository,
+            JwtTokenUtils tokenUtils
     ) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.businessRepository = businessRepository;
+        this.tokenUtils = tokenUtils;
         UserEntity alex = new UserEntity();
         alex.setUsername("alex");
         alex.setPassword(passwordEncoder.encode("password"));
-//        alex.setNickname("alexhihi");
-//        alex.setAge(30);
-//        alex.setEmail("user1@a.a");
-//        alex.setPhone("010-asdf-zxcv");
         alex.setRole(UserRole.BUSINESS);
         userRepository.save(alex);
+        log.info(String.format("alex id: %d",alex.getId()));
+
+        UserEntity brad = new UserEntity();
+        brad.setUsername("brad");
+        brad.setPassword(passwordEncoder.encode("password"));
+        brad.setRole(UserRole.ADMIN);
+        userRepository.save(brad);
+        log.info(String.format(" %s id: %d %s",brad.getUsername(), brad.getId(), brad.getRole().name()));
+    }
+
+    public JwtResponseDto userLogin(
+            String username,
+            String password
+    ) {
+        // 1. Check if username exists
+        Optional<UserEntity> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+        }
+
+        UserEntity userEntity = optionalUser.get();
+        UserDetails userDetails = new CustomUserDetails(userEntity);
+        // 2. Check if password matches
+        if(!passwordEncoder.matches(password, userEntity.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Invalid username or password");
+        }
+        // 3. Generate JWT token
+        String token = tokenUtils.generateToken(userDetails);
+
+        // 4. Return JWT token in response
+        JwtResponseDto responseDto = new JwtResponseDto();
+        responseDto.setToken(token);
+        log.info("userId: {}, username: {}, role: {} is login now",userEntity.getId(), userEntity.getUsername(), userEntity.getRole());
+        return responseDto;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<UserEntity> optionalUser =
                 userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, username);
+        }
         UserEntity user = optionalUser.get();
         return new CustomUserDetails(user);
     }
 
-    public void createUser(
+    public UserEntity createUser(
             UserRegisterDto registerDto
     ) {
         if (userRepository.existsByUsername(registerDto.getUsername()) ||
@@ -71,11 +110,11 @@ public class JpaUserService implements UserDetailsService {
         UserEntity newUser = new UserEntity();
         newUser.setUsername(registerDto.getUsername());
         newUser.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        log.info(newUser.toString());
-        userRepository.save(newUser);
+        log.info(newUser.getUsername());
+        return userRepository.save(newUser);
     }
 
-    public void updateUser(UserEssentialInfoDto dto) {
+    public UserDto updateUser(UserEssentialInfoDto dto) {
         //AuthenticationFacade 활용하여 로그인하고 있는 UserEntity의 username를 검색함
         AuthenticationFacade facade = new AuthenticationFacade();
 
@@ -86,8 +125,8 @@ public class JpaUserService implements UserDetailsService {
         user.setPhone(dto.getPhone());
         user.setRole(UserRole.REGULAR);
         log.info(user.getNickname());
-        System.out.println(user.getRole().name());
-        userRepository.save(user);
+        log.info(user.getRole().name());
+        return UserDto.fromEntity(userRepository.save(user));
     }
 
     public UserDto updateProfileImage(
@@ -146,11 +185,13 @@ public class JpaUserService implements UserDetailsService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "this businessNum is existed");
         }
-        log.info("success1");
+        currentUser.setRole(UserRole.BUSINESS);
+        log.info("success");
         UserBusinessRegistration businessRegistration = UserBusinessRegistration.builder()
                 .user(currentUser)
                 .businessNum(businessNum)
                 .build();
+        log.info(String.format("business: %d",businessRegistration.getId()));
         return UserBusinessRegistrationDto.fromEntity(businessRepository.save(businessRegistration));
     }
 
@@ -163,13 +204,12 @@ public class JpaUserService implements UserDetailsService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not ADMIN");
         }
         List<UserBusinessRegistration> registrations = businessRepository.findAll();
-        List<UserBusinessRegistrationDto> dtoRegistrations = new ArrayList<>();
+        if (registrations.isEmpty())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"businessRegistration is empty");
 
-        for (UserBusinessRegistration registration : registrations) {
-            dtoRegistrations.add(UserBusinessRegistrationDto.fromEntity(registration));
-        }
-
-        return dtoRegistrations;
+        return registrations.stream()
+                .map(UserBusinessRegistrationDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     //read one businessRegistration

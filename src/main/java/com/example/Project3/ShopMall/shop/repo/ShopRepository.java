@@ -5,10 +5,12 @@ import com.example.Project3.user.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ShopRepository extends JpaRepository<ShopEntity,Long> {
     Optional<ShopEntity> findByShopName(String ShopName);
+    Optional<ShopEntity> findByCategory(String category);
     boolean existsByShopName(String ShopName);
 }

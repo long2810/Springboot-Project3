@@ -8,6 +8,7 @@ import com.example.Project3.user.dto.UserRegisterDto;
 import com.example.Project3.user.entity.UserEntity;
 import com.example.Project3.user.repo.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -34,29 +35,35 @@ public class UserController {
     }
 
     //user/login -> login-form.html
-    @GetMapping("/login")
+    @PostMapping("/login")
     public String loginForm(
+            @RequestParam("username")
+            String username,
+            @RequestParam("password")
+            String password
     ) {
+        service.userLogin(username,password);
+        log.info("login success");
         return "login-form";
     }
 
-    @GetMapping("/register")
-    public String registerFrom() {
-        return "register-form";
-    }
+//    @GetMapping("/register")
+//    public String registerFrom() {
+//        return "register-form";
+//    }
 
-    @PostMapping("/register")
+   @PostMapping("/register")
     public String register(
             @RequestParam("username")
             String username,
             @RequestParam("password")
             String password,
-            @RequestParam("password-check")
-            String password_check
+            @RequestParam("passwordCheck")
+            String passwordCheck
     ) {
-        UserRegisterDto dto = new UserRegisterDto(username, password, password_check);
+        UserRegisterDto dto = new UserRegisterDto(username, password, passwordCheck);
         service.createUser(dto);
-        return "redirect:/users/login";
+        return "redirect:/users/home";
     }
 
     @GetMapping("/updateInfo")
@@ -70,20 +77,24 @@ public class UserController {
             return "shopHome";
     }
 
-    @PostMapping("/updateInfo")
-    public String updateUser(
+    @PatchMapping("/updateInfo")
+    public ResponseEntity<UserDto> updateUser(
             @RequestParam("nickname")
+//            @RequestBody
             String nickname,
             @RequestParam("age")
-            int age,
+//            @RequestBody
+            String age,
             @RequestParam("email")
+//            @RequestBody
             String email,
             @RequestParam("phone")
+//            @RequestBody
             String phone
     ) {
-        UserEssentialInfoDto dto = new UserEssentialInfoDto(nickname, age, email, phone);
-        service.updateUser(dto);
-        return "redirect:/users/home";
+        UserEssentialInfoDto essentialInfoDto = new UserEssentialInfoDto(nickname, Integer.parseInt(age), email, phone);
+        UserDto userDto = service.updateUser(essentialInfoDto);
+        return ResponseEntity.ok(userDto);
     }
 
     @GetMapping("/{userId}/updateProfileImage")
@@ -101,7 +112,7 @@ public class UserController {
     public UserDto updateProfileImage(
             @PathVariable("userId")
             Long userId,
-            @RequestParam("profileImage")
+            @RequestBody
             MultipartFile profileImage,
             Model model
     )throws IOException {
@@ -110,16 +121,17 @@ public class UserController {
         return service.updateProfileImage(userId,profileImage);
     }
 
-    //users/{userId}/business
-    @PostMapping("/{userId}/business")
-    public UserBusinessRegistrationDto createBusinessRegistration(
-            @PathVariable("userId")
-            Long userId,
+    //users/businessRegister
+    @PostMapping("/businessRegister")
+    public ResponseEntity<UserBusinessRegistrationDto> createBusinessRegistration(
+//            @PathVariable("userId")
+//            Long userId,
             @RequestParam("businessNum")
             String businessNum
     ) {
-        log.info("success");
-        return service.createBusinessRegistration(Long.parseLong(businessNum));
+        log.info("business");
+        UserBusinessRegistrationDto dto = service.createBusinessRegistration(Long.parseLong(businessNum));
+        return ResponseEntity.ok(dto);
     }
 
     // read list registration
@@ -131,12 +143,13 @@ public class UserController {
 
     //read one
     @PostMapping("/admin/business/{id}")
-    public UserBusinessRegistrationDto readOneBusinessRegistration(
+    public ResponseEntity<UserBusinessRegistrationDto> readOneBusinessRegistration(
             @PathVariable("id")
             Long id
     ) {
         log.info("success2");
-        return service.readOneBusinessRegistration(id);
+        UserBusinessRegistrationDto dto = service.readOneBusinessRegistration(id);
+        return ResponseEntity.ok(dto);
     }
 
     //accept

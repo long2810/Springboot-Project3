@@ -15,16 +15,14 @@ public class ShopDto {
     private String description;
     private ShopState state;
     private String category;
-    private UserEntity owner;
     private String declineReason;
 
-    ShopDto fromEntity(ShopEntity entity) {
+    public static ShopDto fromEntity(ShopEntity entity) {
         return ShopDto.builder()
                 .name(entity.getShopName())
                 .description(entity.getDescription())
                 .state(entity.getState())
                 .category(entity.getCategory().name())
-                .owner(entity.getOwner())
                 .build();
     }
 }
